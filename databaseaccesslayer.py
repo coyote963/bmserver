@@ -46,27 +46,35 @@ def player_floor(playerid, cur):
 		return 1000
 
 #adds a player to the player database table
-def add_player(name, steamid,date,cur,rating = 1000, ratingfloor = 750, timesplayed = 1):
-	query = """INSERT INTO {} (ingamename, steamid, rating, datecreated, ratingfloor,lastplayed, timesplayed,active)
-			VALUES(%s, %s, %s, %s, %s, %s, %s, %s);""".format(config.playertable)
+def add_player(name, steamid,date,cur,rating = 1000, ratingfloor = 750, timesplayed = 1,mu = 25, sigma = 25.0/3):
+	query = """INSERT INTO {} (ingamename, steamid, rating, datecreated, ratingfloor,lastplayed, timesplayed,active,primaryaccount,mu,sigma)
+			VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s,%s,%s);""".format(config.playertable)
 	cur.execute(
 		query,
-		(name, steamid, rating, date,ratingfloor,date, timesplayed,True)
+		(name, steamid, rating, date,ratingfloor,date, timesplayed,True,True,mu,sigma)
 		)
-	return find_player(name, str(steamid), cur)
+	locateplayer = find_player(name, str(steamid), cur)
+	query = """UPDATE {} 
+	SET primaryaccount = (%s)
+	WHERE steamid = (%s) AND player_id != (%s);""".format(config.playertable)
+	cur.execute(
+		query,
+		(False, str(steamid), locateplayer))
+	return locateplayer 
 
 #given two ids, uses the elo function to adjust ratings
 def apply_elo(victimid, killerid, cur):
 	victim_rating = player_rating(victimid, cur)
-	print "victim " + str(victim_rating)
+
 	
 	killer_rating = player_rating(killerid, cur)
-	print "killer" + str(killer_rating)
+
 	victimnewrating = elo(victim_rating, killer_rating)[0]
 	killernewrating = elo(victim_rating, killer_rating)[1]
 	dt = datetime.now()
 	query = """
-		UPDATE {} SET rating = (%s), lastplayed = (%s)
+		UPDATE {}
+		SET rating = (%s), lastplayed = (%s)
 		WHERE player_id = (%s);""".format(config.playertable)
 	cur.execute(
 		query,
@@ -184,3 +192,36 @@ def elo(victimrating,killerrating):
 	r1 = victimrating - 16*e1
 	r2 = killerrating + 16*(1 - e2)
 	return [r1,r2]
+
+def getDict(plid, dict_cur):
+	query = """
+	SELECT * FROM {}
+	WHERE player_id = (%s);
+	""".format(config.playertable)
+	dict_cur.execute(query,(plid,))
+	return dict_cur.fetchone()
+
+def getDictName(name, dict_cur):
+	query = """
+	SELECT * FROM {}
+	WHERE ingamename = (%s);
+	""".format(config.playertable)
+	dict_cur.execute(query,(name,))
+	return dict_cur.fetchone()
+
+def updateMu(mu,sigma,playerid,dict_cur):
+	query = """
+	UPDATE {} SET mu = (%s), sigma = (%s)
+	WHERE player_id = (%s)""".format(config.playertable)
+	dict_cur.execute(query,(mu,sigma,playerid))
+
+def createMatch(winner,dict_cur):
+	dict_cur.execute("""INSERT INTO game (datecreated, winner)
+		VALUES (%s, %s);""",(datetime.now(),winner))
+def latestMatch(dict_cur):
+	dict_cur.execute("""SELECT * FROM game
+		ORDER BY datecreated DESC;""")
+	return dict_cur.fetchone()
+def insert_tplayer(mu,sigma,team,playerid,gameid,dict_cur):
+	dict_cur.execute("""INSERT INTO tplayer (mu, sigma, team, game_id, player_id)
+		VALUES (%s, %s, %s, %s, %s);""",(mu,sigma,team,gameid,playerid))

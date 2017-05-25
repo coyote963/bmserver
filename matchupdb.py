@@ -1,7 +1,6 @@
 from datetime import datetime
-from databaseaccesslayer import find_player,add_player, matchupdate, most_recent_steam,player_rating, apply_elo, apply_floor, enforce_floor,update_activity
-import winsound
-
+from databaseaccesslayer import *
+import psycopg2.extras
 #deprecated. Do not use under any circumstances. Favors data loss.
 def read_and_write(string,comparator,bmstream, socket):
 	while True:
@@ -34,7 +33,7 @@ def matchupdb(packet, socket, **kwargs):
 	if packet['option'] == 'Killfeed':		
 		conn = kwargs['dbcursor']
 		bmstream = kwargs['bms']
-
+		dict_cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 		cur = conn.cursor()
 		dt = datetime.now()
 
@@ -46,8 +45,8 @@ def matchupdb(packet, socket, **kwargs):
 		bmstream.read()
 		killerdict = bmstream.pop()
 		
-		victimid = locate_player(victimdict,dt,cur)
-		killerid = locate_player(killerdict,dt,cur)
+		victimid = locate_player(victimdict,dt,cur,dict_cur)
+		killerid = locate_player(killerdict,dt,cur,dict_cur)
 		newrating = apply_elo(victimid, killerid, cur)
 		try:	
 			matchupdate(newrating[0],newrating[1], 
@@ -63,7 +62,7 @@ def matchupdb(packet, socket, **kwargs):
 		update_activity(killerid,cur)
 		conn.commit()
 #locates the player, and returns his id. If this is a new player, add the new player's ID.
-def locate_player(steamdict,dt, cur):
+def locate_player(steamdict,dt, cur,dict_cur):
 	try:
 		#attempt to access the player naive
 		playerid = find_player(steamdict['player'], steamdict['steamid'], cur) 
@@ -74,15 +73,12 @@ def locate_player(steamdict,dt, cur):
 	if playerid is None:
 		#there is no row existing that has this. We need to add one row.
 		#if the player is not using steam
-		if steamdict['steamid'] == '-1':
+		player_id = most_recent_steam(steamdict['steamid'], cur)
+		if not player_id:
+			#this is the first time on server, therefore no most recent steam
 			playerid = add_player(steamdict['player'], steamdict['steamid'], dt, cur)[0]
 		else:
-			#get the most recently played steam
-			player_id = most_recent_steam(steamdict['steamid'], cur)
-			if not player_id:
-				#this is the first time on server, therefore no most recent steam
-				playerid = add_player(steamdict['player'], steamdict['steamid'], dt, cur)[0]
-			else:
-				#this is not first time on server. add a new row from the most recent steam
-				playerid = add_player(steamdict['player'], steamdict['steamid'], dt, cur, player_rating(player_id, cur))
+			#this is not first time on server. add a new row from the most recent steam
+			pdict = getDict(player_id,dict_cur)
+			playerid = add_player(steamdict['player'], steamdict['steamid'], dt, cur, rating = player_rating(player_id, cur), ratingfloor = pdict['ratingfloor'], timesplayed = pdict['timesplayed'], mu = pdict['mu'], sigma = pdict['sigma'])
 	return playerid

@@ -22,8 +22,13 @@ def steamiter(index):
 	return index + 3
 def iditer(index):
 	return index + 3
-
-
+def winnertype(identifier):
+	if identifier == "USC WINS":
+		return "usc"
+	if identifier == "THE MAN WINS":
+		return "man"
+	else:
+		return "draw"
 def infotype(identifier):
 	return infotypes[int(identifier)]
 def voteinfotype(identifier):
@@ -49,7 +54,7 @@ def blocksplit(block):
 		elif infotype(blocklist[i]) == "Match End":
 			blockq.append({
 				'option':infotype(blocklist[i]),
-				'winner':blocklist[i+1],
+				'winner':winnertype(blocklist[i+1]),
 				'next_map':blocklist[i+2]
 				 })
 			i = matchiter(i)

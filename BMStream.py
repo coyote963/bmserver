@@ -6,11 +6,11 @@ class BMStream:
 		self.blockqueue = deque()
 		self.socket = socket
 	def read(self):
-		self.blockqueue = blocksplit(self.socket.recv(1024))
+		self.blockqueue = blocksplit(self.socket.recv(4084))
 	def pop(self):
 		return self.blockqueue.pop()
 	def isEmpty(self):
-		return self.blockqueue
+		return len(self.blockqueue) == 0
 	def length(self):
 		return len(self.blockqueue)
 	def send(self, message):

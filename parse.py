@@ -6,14 +6,12 @@ def parse(funclist,socket,**kwargs):
 		bms = kwargs['bms']
 		while (True):
 			bms.read()
-			while bms.isEmpty():
+			while not bms.isEmpty():
 				bmdict = bms.pop()
 				for bmfunc in funclist:
 					bmfunc(bmdict,socket,**kwargs)
 	except KeyboardInterrupt:
 		print "exiting"
-		socket.close()
+
 		kwargs.get('dbcursor').close()
-		
-		
-		
+
