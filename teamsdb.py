@@ -10,9 +10,9 @@ class Team:
    			self.addUser(packet)
    		else:
    			if packet['team'] == '1':
-   				self.teamlist[packet['name']][1] += 1
-   			if packet['team'] == '2':
    				self.teamlist[packet['name']][0] += 1
+   			if packet['team'] == '2':
+   				self.teamlist[packet['name']][1] += 1
    	def incrementHits(self):
    		self.hits += 1;
    	def addUser(self, packet):
@@ -50,8 +50,6 @@ def teamsdb(packet, socket, **kwargs):
 
 def clearTeam(packet, socket, **kwargs):
 	if packet['option'] == 'Match End':
-		print "!!!!!!!!!!!!!!!!!"
-		
 		manid = uscid  = []
 		uscplayer = manplayer  = manweight = uscweight = ()
 		conn = kwargs['dbcursor']
@@ -75,12 +73,12 @@ def clearTeam(packet, socket, **kwargs):
 						team[playername],
 						kwargs['teamlist'].hits),)
 					uscid.append(pdict['player_id'])
-		import pdb; pdb.set_trace()
+
 		if packet['winner'] == 'man':
-			myranks=[0,1]
+			myranks = [0,1]
 		if packet['winner'] == 'usc':
 			myranks = [1,0]
-		else:
+		if packet['winner'] == 'draw':
 			myranks = [0,0]
 
 		newmanteam, newuscteam = rate([manplayer,uscplayer], ranks = myranks, weights = [manweight,uscweight])
@@ -91,9 +89,9 @@ def clearTeam(packet, socket, **kwargs):
 		
 def mainteam(frequencylist):
 	if frequencylist[0] > frequencylist[1]:
-		return 'man'
-	else:
 		return 'usc'
+	else:
+		return 'man'
 def measureweight(teamtimes, total):
 	return (teamtimes[0] + teamtimes[1])*(1.0 - min(teamtimes)/ float(max(teamtimes))) / float(total)
 

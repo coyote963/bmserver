@@ -12,7 +12,6 @@ from matchupdb import matchupdb
 from teamsdb import teamsdb, clearTeam, Team,infoIncrement
 import config
 import scoreboardService
-
 if __name__ == "__main__":
 	if len(sys.argv) == 1:
 		config.initiate()

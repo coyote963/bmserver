@@ -68,7 +68,6 @@ def locate_player(steamdict,dt, cur,dict_cur):
 		playerid = find_player(steamdict['player'], steamdict['steamid'], cur) 
 	except KeyError:
 		#mismatch occurred. The packet accessed was not a player, occurs when there is a game kill.
-		print "mismatch"
 		return
 	if playerid is None:
 		#there is no row existing that has this. We need to add one row.
