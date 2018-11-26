@@ -2,7 +2,7 @@ import re
 from collections import deque
 
 infotypes = {1:"Chat", 2:"Match End", 3:"Scoreboard", 4:"Info", 5:"Vote", 6:"Killfeed", \
-             7:"Steam ID", 8:"ID"}
+        7:"Steam ID", 8:"ID",9:"Team Score", 10:"Round End"}
 gamemodes = {1:"CTF",2:"DM",3:"CLB",4:"ZMB",5:"TDM",6:"WD",7:"SVL",8:"TO"}
 voteinfotypes = {0:"Change Map", 1:"Ban Player"}
 
@@ -22,6 +22,10 @@ def steamiter(index):
 	return index + 3
 def iditer(index):
 	return index + 3
+def teamscoreiter(index):
+        return index + 3
+def roundenditer(index):
+        return index + 2
 def winnertype(identifier):
 	if identifier == "USC WINS":
 		return "usc"
