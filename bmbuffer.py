@@ -33,6 +33,13 @@ def winnertype(identifier):
 		return "man"
 	else:
 		return "draw"
+def winner(identifier):
+	if identifier == "1":
+		return "USC"
+	if identifier =="2":
+		return "The Man"
+	if identifier == "0":
+		return "Draw"
 def infotype(identifier):
 	return infotypes[int(identifier)]
 def voteinfotype(identifier):
@@ -131,5 +138,17 @@ def blocksplit(block):
 					'player' : blocklist[i+2]
 					})
 			i = steamiter(i)
-
+		elif infotype(blocklist[i]) == "Team Score":
+			blockq.append({
+				'option' : infotype(blocklist[i]),
+				'usc score' : blocklist[i+1],
+				'man score' : blocklist[i+2]
+				})
+			i = teamscoreiter(i)
+		elif infotype(blocklist[i]) == "Round End":
+			blockq.append({
+				'option' : infotype(blocklist[i]),
+				'winner' : winner(blocklist[i+1])
+				})
+			i = roundenditer(i)
 	return blockq
