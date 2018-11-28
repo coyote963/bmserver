@@ -6,6 +6,7 @@ infotypes = {1:"Chat", 2:"Match End", 3:"Scoreboard", 4:"Info", 5:"Vote", 6:"Kil
 gamemodes = {1:"CTF",2:"DM",3:"CLB",4:"ZMB",5:"TDM",6:"WD",7:"SVL",8:"TO"}
 voteinfotypes = {0:"Change Map", 1:"Ban Player"}
 
+
 def chatiter(index):
 	return index + 3
 def matchiter(index):
@@ -33,13 +34,16 @@ def winnertype(identifier):
 		return "man"
 	else:
 		return "draw"
-def winner(identifier):
+def team(identifier):
+	x = "Unknown"
 	if identifier == "1":
-		return "USC"
-	if identifier =="2":
-		return "The Man"
-	if identifier == "0":
-		return "Draw"
+		x = "USC"
+	elif identifier =="2":
+		x = "The Man"
+	elif identifier == "0":
+		x = "Draw"
+	return x
+
 def infotype(identifier):
 	return infotypes[int(identifier)]
 def voteinfotype(identifier):
@@ -74,7 +78,7 @@ def blocksplit(block):
 			blockq.append({
 				'option':infotype(blocklist[i]),
 				'gamemode': gamemode(blocklist[i+1]), 
-				'team':blocklist[i+2], 
+				'team':team(blocklist[i+2]), 
 				'name':blocklist[i+3], 
 				'kills':blocklist[i+4], 
 				'deaths':blocklist[i+5]
@@ -148,7 +152,7 @@ def blocksplit(block):
 		elif infotype(blocklist[i]) == "Round End":
 			blockq.append({
 				'option' : infotype(blocklist[i]),
-				'winner' : winner(blocklist[i+1])
+				'winner' : team(blocklist[i+1])
 				})
 			i = roundenditer(i)
 	return blockq
